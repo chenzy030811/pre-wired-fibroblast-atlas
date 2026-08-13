@@ -1,0 +1,21 @@
+# python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.env
+.venv/
+# data
+*.h5ad
+*.h5
+*.mtx
+*.rds
+*.RData
+data/*.csv
+data/*.tsv
+!data/orthologs_1to1to1to1.csv
+# figures (regenerate from code)
+*.pdf
+figures/*.png
+# OS
+.DS_Store
+Thumbs.db

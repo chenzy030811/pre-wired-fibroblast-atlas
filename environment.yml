@@ -1,0 +1,35 @@
+name: prewired
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11.7
+  - pip
+  - numpy=2.0.1
+  - pandas=2.2.2
+  - scipy=1.14.0
+  - scikit-learn=1.5.0
+  - matplotlib=3.9.0
+  - seaborn=0.13.2
+  - h5py
+  - anndata=0.10.8
+  - scanpy=1.10.2
+  - scrublet=0.2.3
+  - jupyterlab
+  - r-base=4.4
+  - r-seurat=5.1
+  - r-gprofiler2=0.2.3
+  - r-dplyr
+  - r-ggplot2
+  - r-patchwork
+  - r-hdf5r
+  - bioconductor-singlecellexperiment
+  - bioconductor-scater
+  - pip:
+      - scvi-tools==1.2.0
+      - scib-metrics==0.5.9
+      - torch==2.3.1
+      - torchvision
+      - leidenalg==0.10.2
+      - python-igraph==0.11.5
+      - session-info

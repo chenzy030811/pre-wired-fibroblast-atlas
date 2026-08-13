@@ -1,0 +1,119 @@
+"""
+Publication-grade UMAP for cross-species Keratinocyte integration.
+Same style as Fibroblast plot (Reynolds/Ferreira-lab pastel).
+"""
+import anndata as ad
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patheffects as mpe
+from pathlib import Path
+
+# =========== paths ===========
+in_path  = Path("/Users/apple/Downloads/研究生毕业论文/Cross_Species/"
+                "scvi_out/Keratinocyte_scvi/integrated.h5ad")
+out_dir  = Path("/Users/apple/Downloads/preview_output")
+out_dir.mkdir(exist_ok=True, parents=True)
+
+# =========== palettes — unified pastel across all main figures ==
+SPECIES_COLORS = {
+    "Reindeer": "#E28A7A",
+    "Human":    "#8AB2D0",
+    "Mus":      "#B5C275",
+    "Acomys":   "#D189A5",
+}
+LEIDEN_COLORS = [
+    "#E28A7A", "#D4B14A", "#E4A08C", "#7BC5AF",
+    "#B5C275", "#A98CBE", "#8AB2D0", "#6B8DBA",
+    "#D189A5", "#B387A2", "#9BA0AE", "#C29A6E",
+    "#8FD1BB", "#B989A2", "#C7A67E", "#7C97C6",
+]
+
+# =========== load ===========
+print(f"Loading {in_path.name} ...")
+adata = ad.read_h5ad(in_path)
+umap = adata.obsm["X_umap"]
+species  = adata.obs["species"].values.astype(str)
+leiden   = adata.obs["leiden_scvi"].values.astype(str)
+n_clust  = len(np.unique(leiden))
+print(f"  {adata.n_obs} cells  ·  {n_clust} clusters")
+
+# =========== typography ===========
+plt.rcParams.update({
+    "font.family":     "Helvetica",
+    "font.size":       11,
+    "axes.titlesize":  14,
+    "axes.titleweight":"bold",
+    "figure.facecolor":"white",
+    "savefig.facecolor":"white",
+})
+
+def corner_axes(ax, xr, yr, frac=0.14, gap=0.02):
+    xs = xr[0] + (xr[1]-xr[0]) * gap
+    ys = yr[0] + (yr[1]-yr[0]) * gap
+    xl = xs + (xr[1]-xr[0]) * frac
+    yl = ys + (yr[1]-yr[0]) * frac
+    ax.annotate("", xy=(xl, ys), xytext=(xs, ys),
+                arrowprops=dict(arrowstyle="->", color="black", lw=1.0))
+    ax.annotate("", xy=(xs, yl), xytext=(xs, ys),
+                arrowprops=dict(arrowstyle="->", color="black", lw=1.0))
+    ax.text((xs+xl)/2, ys - (yr[1]-yr[0])*0.03,
+            "UMAP 1", ha="center", va="top", fontsize=9)
+    ax.text(xs - (xr[1]-xr[0])*0.02, (ys+yl)/2,
+            "UMAP 2", ha="right", va="center", fontsize=9, rotation=90)
+
+def strip_axes(ax):
+    ax.set_xticks([]); ax.set_yticks([])
+    for s in ax.spines.values():
+        s.set_visible(False)
+
+# =========== figure ===========
+fig, axes = plt.subplots(1, 2, figsize=(13, 6.2), dpi=200)
+
+xr = umap[:,0].min()-1, umap[:,0].max()+1
+yr = umap[:,1].min()-1, umap[:,1].max()+1
+
+# ---------- Panel 1: species ----------
+ax = axes[0]
+for sp, color in SPECIES_COLORS.items():
+    mask = species == sp
+    ax.scatter(umap[mask,0], umap[mask,1],
+               s=2.5, alpha=0.6, c=color, label=f"{sp} (n={mask.sum():,})",
+               edgecolors="none", linewidths=0, rasterized=True)
+ax.set_xlim(xr); ax.set_ylim(yr)
+strip_axes(ax)
+corner_axes(ax, xr, yr)
+ax.set_title("Species", pad=8)
+# stash for figure-level bottom legend (matches Fib scANVI style)
+_handles, _labels = ax.get_legend_handles_labels()
+
+# ---------- Panel 2: leiden clusters ----------
+ax = axes[1]
+for i in range(n_clust):
+    mask = leiden == str(i)
+    ax.scatter(umap[mask,0], umap[mask,1],
+               s=2.5, alpha=0.6, c=LEIDEN_COLORS[i % len(LEIDEN_COLORS)],
+               edgecolors="none", linewidths=0, rasterized=True)
+    if mask.sum() > 0:
+        cx = np.median(umap[mask,0])
+        cy = np.median(umap[mask,1])
+        # plain black text, no halo, no box
+        ax.text(cx, cy, str(i), fontsize=9, fontweight="medium",
+                ha="center", va="center", color="black",
+                family="Helvetica", zorder=10)
+ax.set_xlim(xr); ax.set_ylim(yr)
+strip_axes(ax)
+corner_axes(ax, xr, yr)
+ax.set_title("Leiden clusters (scVI)", pad=8)
+
+# figure-level species legend at bottom (panel-mode: no suptitle, no a/b labels)
+leg = fig.legend(_handles, _labels,
+                 loc="lower center", bbox_to_anchor=(0.5, -0.02),
+                 ncol=4, frameon=False, fontsize=10,
+                 markerscale=4, handletextpad=0.4, columnspacing=1.8)
+for lh in leg.legend_handles: lh.set_alpha(1.0)
+
+plt.tight_layout(rect=[0, 0.04, 1, 0.98])
+
+out_path = out_dir / "PREVIEW_CrossSpecies_KC_UMAP.png"
+plt.savefig(out_path, dpi=600, bbox_inches="tight")
+print(f"\nWrote {out_path}")

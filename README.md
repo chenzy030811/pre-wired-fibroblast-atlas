@@ -10,6 +10,31 @@ Ferreira laboratory.
 
 ---
 
+## ⚠️  Running on your own machine — path setup
+
+Several R scripts in `src/01_qc/`, `src/02_orthology/` and `src/03_data_prep/`
+contain hard-coded absolute paths pointing to the author's local dataset
+directory (e.g. `/Users/apple/Downloads/研究生毕业论文/human_data`). Before
+running any script on a different machine, replace these paths with the
+location of the relevant raw dataset on your own filesystem. A single
+find-and-replace across the `src/` tree is enough:
+
+```bash
+# example — from the repo root
+grep -rl "/Users/apple/Downloads" src/ | \
+  xargs sed -i '' 's|/Users/apple/Downloads/研究生毕业论文|/your/local/path|g'
+```
+
+The Python scripts under `src/03_data_prep/` onwards use relative paths
+resolved from the repo root and do not need editing. Path-editing is a
+known limitation of this dissertation-scope release; a follow-up refactor
+will move all paths into a single YAML config file.
+
+---
+
+
+---
+
 ## Project scope
 
 Five biological groups, ten datasets, one integrated atlas:
